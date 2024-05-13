@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/Pacobart/mtg-deck-legality-checker/internal/scryfall/helpers"
+	"github.com/Pacobart/mtg-deck-legality-checker/internal/helpers"
 )
 
 type DeckList struct {
@@ -120,7 +120,7 @@ type DeckList struct {
 	} `json:"entries"`
 }
 
-func GetDeckList(url string) []Decklist {
+func GetDeckList(url string) DeckList {
 	deckRegex, _ := regexp.Compile("[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
 	deckId := deckRegex.FindString(url)
 	fullUrl := fmt.Sprintf("https://api.scryfall.com/decks/%s/export/json", deckId)
@@ -128,7 +128,7 @@ func GetDeckList(url string) []Decklist {
 	resp, err := http.Get(fullUrl)
 	helpers.Check(err)
 	if err != nil {
-		fmt.Println("No response from request")
+		helpers.Debug("No response from request")
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
@@ -137,7 +137,7 @@ func GetDeckList(url string) []Decklist {
 
 	var result DeckList
 	if err := json.Unmarshal(body, &result); err != nil {
-		fmt.Println("Can not unmarshal JSON")
+		helpers.Debug("Can not unmarshal JSON")
 	}
 	helpers.Check(err)
 	return result
