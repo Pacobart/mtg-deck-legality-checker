@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/Pacobart/mtg-deck-legality-checker/internal/helpers"
 	"github.com/Pacobart/mtg-deck-legality-checker/internal/scryfall"
 )
 
@@ -11,5 +12,15 @@ func main() {
 
 	deckUrl := "https://scryfall.com/@Pacobart/decks/2ca4c348-b07a-4930-8b4e-3496db97199e"
 	deckList := scryfall.GetDeckList(deckUrl)
-	fmt.Print(deckList.Name)
+	fmt.Printf("%T\n", deckList)
+	helpers.Debug(fmt.Sprintf("Decklist name: %s", deckList.Name))
+	cards := deckList.GetCards()
+	areCardsLegalForCommander = cards.CheckCardsForFormatLegal("Commander")
+	// var cardNames []string
+	// for _, card := range cards {
+	// 	name := card.CardDigest.Name
+	// 	cardNames = append(cardNames, name)
+	// }
+	// fmt.Println(len(cardNames))
+	// fmt.Print(cardNames)
 }
