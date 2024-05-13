@@ -12,10 +12,14 @@ func main() {
 
 	deckUrl := "https://scryfall.com/@Pacobart/decks/2ca4c348-b07a-4930-8b4e-3496db97199e"
 	deckList := scryfall.GetDeckList(deckUrl)
-	fmt.Printf("%T\n", deckList)
 	helpers.Debug(fmt.Sprintf("Decklist name: %s", deckList.Name))
 	cards := deckList.GetCards()
-	areCardsLegalForCommander = cards.CheckCardsForFormatLegal("Commander")
+	areCardsLegalForCommander := scryfall.CheckCardsForFormatLegal("Commander", cards)
+	for _, card := range areCardsLegalForCommander {
+		name := card.Name
+		legal := card.Legal
+		fmt.Println(fmt.Sprintf("Card Legality for %s is %t", name, legal))
+	}
 	// var cardNames []string
 	// for _, card := range cards {
 	// 	name := card.CardDigest.Name

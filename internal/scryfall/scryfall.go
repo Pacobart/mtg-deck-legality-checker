@@ -188,9 +188,9 @@ type Card struct {
 }
 
 type CardLegalForFormat struct {
-	CardID    string
-	CardName  string
-	CardLegal bool
+	ID    string
+	Name  string
+	Legal bool
 }
 
 func GetDeckList(url string) DeckList {
@@ -233,20 +233,33 @@ func (d *DeckList) GetCards() []CardEntry {
 	return cards
 }
 
-func (c *CardEntry) CheckCardsForFormatLegal(format string) []CardLegalForFormat {
-	var cardsLegalForFormat []CardLegalForFormat
-	for _, cardId := range c.CardDigest.ID {
-		helpers.Debug(fmt.Sprintf("looking up Card info from: %s", string(cardId)))
+func CheckCardsForFormatLegal(format string, cards []CardEntry) []CardLegalForFormat {
+	// Pass a list of Cards in to iterate over and see if card is valid for specified format
+	var cardLegalities []CardLegalForFormat
+	for _, cardentry := range cards {
+		cardId := cardentry.CardDigest.ID
 		card := GetCard(string(cardId))
-		formatLegal := card.IsCardLegalForFormat(format)
-		fmt.Println(fmt.Sprintf("Card Legality for %s is %s", card.Name, formatLegal))
-		var cardLegalForFormat CardLegalForFormat
-		cardLegalForFormat.CardID = string(cardId)
-		cardLegalForFormat.CardName = card.Name
-		cardLegalForFormat.CardLegal = formatLegal
-		cardsLegalForFormat = append(cardsLegalForFormat, cardLegalForFormat)
+		cardLegality := cardentry.CheckCardForFormatLegal(format, card)
+		cardLegalities = append(cardLegalities, cardLegality)
 	}
-	return cardsLegalForFormat
+	return cardLegalities
+}
+
+func (c *CardEntry) CheckCardForFormatLegal(format string, card Card) CardLegalForFormat {
+	cardId := card.ID
+	helpers.Debug(fmt.Sprintf("looking up Card info from: %s", string(cardId)))
+	formatLegal := card.IsCardLegalForFormat(format)
+	helpers.Debug(fmt.Sprintf("Card Legality for %s is %t", card.Name, formatLegal))
+	var cardLegalForFormat CardLegalForFormat
+	cardLegalForFormat.ID = string(cardId)
+	if card.Name != "" {
+		cardLegalForFormat.Name = card.Name
+	} else {
+		helpers.Debug(fmt.Sprintf("Card Name empty for %s", cardId))
+		cardLegalForFormat.Name = fmt.Sprintf("UNKNOWN NAME: %s", cardId)
+	}
+	cardLegalForFormat.Legal = formatLegal
+	return cardLegalForFormat
 }
 
 func GetCard(cardId string) Card {
@@ -274,10 +287,13 @@ func (c *Card) IsCardLegalForFormat(format string) bool {
 	if field.IsValid() {
 		value := field.Interface().(string)
 		helpers.Debug(fmt.Sprintf("Card Format found: %s", value))
-		fmt.Println(value) // TODO: remove
-		return true        // TODO: real logic
+		if value == "legal" {
+			return true
+		} else {
+			return false
+		}
 	} else {
-		helpers.Debug(fmt.Sprintf("Invalid field: %s", field))
+		helpers.Debug(fmt.Sprintf("Invalid field: %s looking up format for %s", field, c.ID))
 		return false
 	}
 }
