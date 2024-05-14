@@ -74,3 +74,32 @@ func TestDebugDoesNotPrintWhenDebugIsFalse(t *testing.T) {
 		t.Errorf("Debug printed when DEBUG was false. Got: %q, Expected: empty", actual)
 	}
 }
+
+func TestStructToJson(t *testing.T) {
+	type TestStruct struct {
+		Field1 string `json:"field1"`
+		Field2 int    `json:"field2"`
+		Field3 bool   `json:"field3"`
+	}
+
+	tests := []struct {
+		input    TestStruct
+		expected string
+	}{
+		{
+			input:    TestStruct{Field1: "value1", Field2: 123, Field3: true},
+			expected: `{"field1":"value1","field2":123,"field3":true}` + "\n",
+		},
+		{
+			input:    TestStruct{Field1: "", Field2: 0, Field3: false},
+			expected: `{"field1":"","field2":0,"field3":false}` + "\n",
+		},
+	}
+
+	for _, test := range tests {
+		result := StructToJson(test.input)
+		if result != test.expected {
+			t.Errorf("StructToJson(%v) = %v; want %v", test.input, result, test.expected)
+		}
+	}
+}
